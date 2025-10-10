@@ -3,7 +3,7 @@
 `android/` 目录存放 LiteMind 的 Android 客户端代码，负责 UI 展示、权限处理以及与 JNI 推理库的交互。
 
 ## 打开工程
-- 推荐直接在 Android Studio 中打开仓库根目录 `LiteMind/`，这样 IDE 会同时索引 `android/` 与 `jni/` 两个模块，Gradle 同步后即可调试 JNI 与 Kotlin 代码。
+- 推荐直接在 Android Studio 中打开仓库根目录 `LiteMind/android`，这样 IDE 会同时索引 `android/` 与 `jni/` 两个模块，Gradle 同步后即可调试 JNI 与 Kotlin 代码。
 - 若只需浏览 Android 层，也可以单独打开 `android/` 目录；但进行原生开发时仍需依赖根目录下的 `jni/` 配置与模型资源。
 - 请提前安装 Android Studio Flamingo 及以上版本，并在 `local.properties` 中配置 `ndk.dir`（NDK r23+）与 `cmake.dir`（3.22.1）。
 
