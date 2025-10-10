@@ -1,59 +1,33 @@
 # JNI 模块
 
-该目录包含 LiteMind 的原生推理实现与 CMake 配置，当前重点集成了 BiRefNet 模型（MNN 推理）。
+该目录包含 LiteMind 的原生推理实现与 CMake 配置，当前聚焦于 BiRefNet 的 MNN 推理封装。
 
-## 目录说明
+## 目录结构
 - `include/`
   - `BiRefNetEngine.h`：BiRefNet 推理引擎头文件。
-  - `LiteMind.h`：占位示例，可根据需要拓展。
+  - `MNN/...`：从 MNN SDK 裁剪的公开头文件，便于在仓库内直接引用。
 - `src/`
-  - `BiRefNetEngine.cpp`：封装 MNN Interpreter，完成预处理 / 推理 / 后处理。
-  - `litemind_jni.cpp`：JNI 桥接，向 Android 层暴露 C++ 能力。
-- `CMakeLists.txt`：构建配置，输出 `liblitemind_core.so`。
+  - `BiRefNetEngine.cpp`：封装模型加载、预处理、推理与后处理。
+  - `litemind_jni.cpp`：JNI 桥接实现，对外暴露 Native 方法。
+- `CMakeLists.txt`：生成 `liblitemind_core.so` 的构建脚本。
 
-## 依赖准备
-1. 下载 MNN 预编译包或自行编译 Android 版本，将头文件和库放置在 `third_party/MNN`：
-   ```
-   third_party/MNN/
-   ├── include/       # MNN 头文件
-   └── lib/
-       └── arm64-v8a/ # 各 ABI 对应的 libMNN.so / libMNN.a
-   ```
-   > 如果希望使用 `android/app/src/main/jniLibs/<abi>/libMNN.so`，亦可保持默认结构，无需修改 CMake。
-2. Gradle 侧在 `android/app/build.gradle` 中开启 CMake：
-   ```groovy
-   android {
-       defaultConfig {
-           externalNativeBuild {
-               cmake {
-                   abiFilters "arm64-v8a"
-               }
-           }
-       }
-       externalNativeBuild {
-           cmake {
-               path file("../../jni/CMakeLists.txt")
-           }
-       }
-   }
-   ```
+## 构建准备
+1. 确保已安装 Android NDK r23+ 与 CMake ≥ 3.22.1，并在 Android Studio 的 `local.properties` 中配置 `ndk.dir` 与 `cmake.dir`。
+2. 准备 MNN 预编译库：
+   - 默认从 `third_party/MNN` 读取（结构为 `include/`、`lib/<abi>/libMNN.so`）。
+   - 如果直接打包到 App，可将 `libMNN.so` 放在 `android/app/src/main/jniLibs/<abi>/`，CMake 会自动导入。
+3. Android 模块通过 `externalNativeBuild` 引用本目录，无需单独复制 `.so`。
 
-## C++/JNI 接口概览
-- `long createEngine(String modelPath, int threads)`：加载 `libMNN.so` 和模型文件，返回句柄。
-- `void destroyEngine(long handle)`：释放对应引擎资源。
-- `byte[] runInference(long handle, Bitmap bitmap)`：输入 `RGBA_8888` 位图，返回与原图同尺寸的掩码（0-255 灰度）。
-- `int[] getModelInputSize(long handle)`：返回模型期望输入尺寸（默认 512x512）。
+## JNI 接口
+- `long createEngine(String modelPath, int threads)`：加载指定路径的 MNN 模型。
+- `void destroyEngine(long handle)`：释放原生引擎资源。
+- `byte[] runInference(long handle, Bitmap bitmap)`：输入 `RGBA_8888` 位图，返回同尺寸的单通道掩码。
+- `int[] getModelInputSize(long handle)`：返回模型期望的输入宽高（默认 512×512）。
 
-> JNI 会对 Bitmap 进行双线性缩放和归一化，输出掩码时保持原始大小。
-
-## Android 层调用示例（Kotlin）
+### Kotlin 侧调用示例
 ```kotlin
-class NativeBridge {
-    companion object {
-        init {
-            System.loadLibrary("litemind_core")
-        }
-    }
+object NativeBridge {
+    init { System.loadLibrary("litemind_core") }
 
     external fun createEngine(modelPath: String, threads: Int = 4): Long
     external fun destroyEngine(handle: Long)
@@ -62,35 +36,7 @@ class NativeBridge {
 }
 ```
 
-```kotlin
-class BiRefNetViewModel : ViewModel() {
-    private val bridge = NativeBridge()
-    private var engineHandle: Long = 0
-
-    fun initEngine(context: Context) {
-        if (engineHandle != 0L) return
-        val modelFile = copyAssetIfNeeded(context, "birefnet_w8_nostat.mnn")
-        engineHandle = bridge.createEngine(modelFile.absolutePath, threads = 4)
-    }
-
-    fun release() {
-        if (engineHandle != 0L) {
-            bridge.destroyEngine(engineHandle)
-            engineHandle = 0
-        }
-    }
-
-    fun run(bitmap: Bitmap): Bitmap {
-        require(engineHandle != 0L) { "engine not initialized" }
-        val mask = bridge.runInference(engineHandle, bitmap)
-        return mask.toAlphaBitmap(bitmap.width, bitmap.height)
-    }
-}
-```
-
-`toAlphaBitmap` 可将 ByteArray 转换为 `Bitmap.Config.ALPHA_8`，再与原图合成 RGBA 预览。
-
-## 本地调试
+## 本地命令行构建
 ```bash
 cd jni
 cmake -B build -S . \
@@ -101,4 +47,4 @@ cmake -B build -S . \
 cmake --build build
 ```
 
-Android Gradle 插件会自动调用该配置，无需手动复制 `.so` 文件。
+编译成功后会在 `jni/build/` 下生成 `liblitemind_core.so`，Android Gradle 插件在构建 APK 时会自动包含该库。
