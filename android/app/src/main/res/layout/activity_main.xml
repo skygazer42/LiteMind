@@ -39,7 +39,7 @@
         android:scaleType="centerCrop"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toStartOf="@id/maskPreview"
-        app:layout_constraintHorizontalWeight="1"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/statusText"
         tools:src="@drawable/ic_launcher_foreground" />
@@ -54,7 +54,7 @@
         android:scaleType="centerCrop"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontalWeight="1"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toEndOf="@id/originalPreview"
         app:layout_constraintTop_toTopOf="@id/originalPreview"
         app:layout_constraintBottom_toBottomOf="@id/originalPreview"

@@ -1,0 +1,3 @@
+F:/pythonproject/LiteMind/android/app/.cxx/Debug/3k5v6f2d/armeabi-v7a/CMakeFiles/litemind_core.dir
+F:/pythonproject/LiteMind/android/app/.cxx/Debug/3k5v6f2d/armeabi-v7a/CMakeFiles/edit_cache.dir
+F:/pythonproject/LiteMind/android/app/.cxx/Debug/3k5v6f2d/armeabi-v7a/CMakeFiles/rebuild_cache.dir

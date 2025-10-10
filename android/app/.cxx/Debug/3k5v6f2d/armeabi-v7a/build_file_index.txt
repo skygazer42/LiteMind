@@ -1,0 +1,1 @@
+F:\pythonproject\LiteMind\jni\CMakeLists.txt
