@@ -37,6 +37,7 @@
 *.out
 *.app
 resources/model
+resources
 # debug information files
 *.dwo
 *.idea
