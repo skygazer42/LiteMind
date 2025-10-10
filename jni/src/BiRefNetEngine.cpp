@@ -125,10 +125,9 @@ std::vector<uint8_t> BiRefNetEngine::Run(const uint8_t* pixels_rgba,
     std::vector<float> nchw_buffer(3 * model_size.width * model_size.height);
     Preprocess(pixels_rgba, input_size, nchw_buffer);
 
-    auto* input_tensor = interpreter_->getSessionInput(session_, input_tensor_name_.c_str());
-    if (!input_tensor) {
-        input_tensor = interpreter_->getSessionInput(session_);
-    }
+    const char* input_name =
+        input_tensor_name_.empty() ? nullptr : input_tensor_name_.c_str();
+    auto* input_tensor = interpreter_->getSessionInput(session_, input_name);
     if (!input_tensor) {
         throw std::runtime_error("Failed to fetch input tensor.");
     }
@@ -139,14 +138,13 @@ std::vector<uint8_t> BiRefNetEngine::Run(const uint8_t* pixels_rgba,
 
     std::unique_ptr<MNN::Tensor> host_tensor(
         MNN::Tensor::create<float>(shape, nchw_buffer.data(), MNN::Tensor::CAFFE));
-    input_tensor->copyFrom(host_tensor.get());
+    input_tensor->copyFromHostTensor(host_tensor.get());
 
     interpreter_->runSession(session_);
 
-    auto* output_tensor = interpreter_->getSessionOutput(session_, output_tensor_name_.c_str());
-    if (!output_tensor) {
-        output_tensor = interpreter_->getSessionOutput(session_);
-    }
+    const char* output_name =
+        output_tensor_name_.empty() ? nullptr : output_tensor_name_.c_str();
+    auto* output_tensor = interpreter_->getSessionOutput(session_, output_name);
     if (!output_tensor) {
         throw std::runtime_error("Failed to fetch output tensor.");
     }
@@ -263,4 +261,3 @@ std::vector<uint8_t> BiRefNetEngine::Postprocess(MNN::Tensor* output_tensor,
 }
 
 }  // namespace litemind
-
