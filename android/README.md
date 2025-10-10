@@ -21,7 +21,7 @@ android/
 ├── gradle.properties
 └── settings.gradle
 ```
-
+ ce
 ## 运行 BiRefNet 演示
 1. 确认 `app/src/main/assets/birefnet/` 下存在 `birefnet_w8_nostat.mnn`（已从 `resources/birefnet/mnn/` 拷贝）。
 2. `app/src/main/jniLibs/<abi>/` 需包含对应架构的 `libMNN.so` 及其依赖（示例工程已预置）。
