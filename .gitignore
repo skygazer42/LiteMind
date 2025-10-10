@@ -39,3 +39,10 @@
 
 # debug information files
 *.dwo
+
+# Android/Gradle build artifacts
+android/.gradle/
+android/.idea/
+android/build/
+android/local.properties
+android/app/build/

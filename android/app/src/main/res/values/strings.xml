@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LiteMind</string>
+    <string name="placeholder_inference_result">推理结果将在这里显示</string>
+    <string name="action_run_inference">运行推理</string>
+</resources>
