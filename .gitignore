@@ -36,10 +36,11 @@
 *.exe
 *.out
 *.app
-
+resources/model
 # debug information files
 *.dwo
-
+*.idea
+.idea/
 # Android/Gradle build artifacts
 android/.gradle/
 android/.idea/
