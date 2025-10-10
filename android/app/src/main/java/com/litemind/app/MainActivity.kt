@@ -23,18 +23,33 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var engineManager: BiRefNetEngineManager
 
-    private var originalBitmap: Bitmap? = null
+    private var processedBitmap: Bitmap? = null
+    private var lastOriginalSize: Pair<Int, Int>? = null
+    private var modelInputSize: Pair<Int, Int> = 0 to 0
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
                 loadBitmapFromUri(uri)?.let { bitmap ->
-                    originalBitmap?.recycle()
-                    originalBitmap = bitmap
-                    binding.originalPreview.setImageBitmap(bitmap)
+                    val originalWidth = bitmap.width
+                    val originalHeight = bitmap.height
+                    val prepared = prepareBitmapForModel(bitmap)
+                    if (prepared !== bitmap) {
+                        bitmap.recycle()
+                    }
+                    processedBitmap = prepared
+                    lastOriginalSize = originalWidth to originalHeight
+                    binding.originalPreview.setImageBitmap(prepared)
                     binding.statusText.text =
-                        getString(R.string.status_image_loaded, bitmap.width, bitmap.height)
-                    binding.runInferenceButton.isEnabled = engineManager.isInitialized
+                        getString(
+                            R.string.status_image_loaded_scaled,
+                            originalWidth,
+                            originalHeight,
+                            prepared.width,
+                            prepared.height
+                        )
+                    binding.runInferenceButton.isEnabled =
+                        engineManager.isInitialized && processedBitmap != null
                 } ?: showToast(getString(R.string.error_decode_image))
             }
         }
@@ -61,8 +76,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        originalBitmap?.recycle()
-        originalBitmap = null
+        processedBitmap = null
+        lastOriginalSize = null
     }
 
     private fun prepareEngine() {
@@ -76,10 +91,29 @@ class MainActivity : AppCompatActivity() {
             binding.progressBar.isVisible = false
             result.onSuccess {
                 val (width, height) = engineManager.inputSize()
+                modelInputSize = width to height
                 binding.statusText.text =
                     getString(R.string.status_engine_ready, width, height)
+                processedBitmap = processedBitmap?.let { current ->
+                    val prepared = prepareBitmapForModel(current)
+                    if (prepared !== current) {
+                        binding.originalPreview.setImageBitmap(prepared)
+                    }
+                    prepared
+                }
+                lastOriginalSize?.let { (ow, oh) ->
+                    processedBitmap?.let { prepared ->
+                        binding.statusText.text = getString(
+                            R.string.status_image_loaded_scaled,
+                            ow,
+                            oh,
+                            prepared.width,
+                            prepared.height
+                        )
+                    }
+                }
                 binding.pickImageButton.isEnabled = true
-                binding.runInferenceButton.isEnabled = originalBitmap != null
+                binding.runInferenceButton.isEnabled = processedBitmap != null
             }.onFailure { throwable ->
                 val message = throwable.message ?: getString(R.string.error_unknown)
                 binding.statusText.text = getString(R.string.status_engine_error, message)
@@ -89,7 +123,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun runInference() {
-        val bitmap = originalBitmap ?: run {
+        val bitmap = processedBitmap ?: run {
             showToast(getString(R.string.status_select_image))
             return
         }
@@ -100,6 +134,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.progressBar.isVisible = true
         binding.runInferenceButton.isEnabled = false
+        binding.pickImageButton.isEnabled = false
         binding.statusText.text = getString(R.string.status_inference_running)
 
         lifecycleScope.launch {
@@ -109,6 +144,7 @@ class MainActivity : AppCompatActivity() {
 
             binding.progressBar.isVisible = false
             binding.runInferenceButton.isEnabled = true
+            binding.pickImageButton.isEnabled = true
 
             result.onSuccess { maskBytes ->
                 val maskBitmap = maskBytes.toGrayBitmap(bitmap.width, bitmap.height)
@@ -140,5 +176,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun prepareBitmapForModel(source: Bitmap): Bitmap {
+        val (targetWidth, targetHeight) = modelInputSize
+        if (targetWidth <= 0 || targetHeight <= 0 ||
+            (source.width == targetWidth && source.height == targetHeight)
+        ) {
+            return source
+        }
+        return Bitmap.createScaledBitmap(source, targetWidth, targetHeight, true)
     }
 }
