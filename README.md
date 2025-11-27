@@ -12,8 +12,8 @@ LiteMind 是一个面向移动端的深度学习推理应用，基于 [MNN](http
 - **推理引擎：** Alibaba MNN（C++）
 - **原生桥接：** JNI / C++17、CMake、Android NDK
 - **移动前端：** Android（Kotlin/Java）
-- **模型导出：** Python 3、ONNX、TensorFlow、PyTorch（计划支持）
-- **CI & 工具链：** Gradle、CMake、GitHub Actions（待补充）
+- **模型导出：** ONNX
+- **CI & 工具链：** Gradle、CMake
 
 ## 目录结构
 仓库初始化后将包含如下核心目录 ：
