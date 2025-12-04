@@ -22,7 +22,7 @@ LiteMind 是一个面向移动端的深度学习推理应用，基于 [MNN](http
 LiteMind/
 ├── android/           # Android 应用源码（Kotlin/Java）
 │   └── app/           # Gradle 模块，UI & 网络交互
-├── jni/               # C++/JNI 源码、CMake 构建脚本
+├── jni/               # C++/JNI 源码、CMake 构建 
 ├── models/            # 训练输出、转换后的权重与校验数据
 ├── scripts/           # 模型转换、CI 辅助脚本
 ├── docs/              # 设计文档与 API 说明
