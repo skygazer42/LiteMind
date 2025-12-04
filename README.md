@@ -26,7 +26,7 @@ LiteMind/
 ├── models/            # 训练输出、转换后的权重与校验数据
 ├── scripts/           # 模型转换、CI 辅助脚本
 ├── docs/              # 设计文档与 API 说明
-├── README.md          # 当前说明文档
+├── README.md           
 └── LICENSE
 ```
 
